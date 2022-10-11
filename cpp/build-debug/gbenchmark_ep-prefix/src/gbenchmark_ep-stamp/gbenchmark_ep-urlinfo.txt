@@ -1,0 +1,12 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=url
+command=/Applications/CMake.app/Contents/bin/cmake;-P;/Users/bytedance/cpp/arrow/cpp/build-debug/gbenchmark_ep-prefix/src/gbenchmark_ep-stamp/download-gbenchmark_ep.cmake;COMMAND;/Applications/CMake.app/Contents/bin/cmake;-P;/Users/bytedance/cpp/arrow/cpp/build-debug/gbenchmark_ep-prefix/src/gbenchmark_ep-stamp/verify-gbenchmark_ep.cmake;COMMAND;/Applications/CMake.app/Contents/bin/cmake;-P;/Users/bytedance/cpp/arrow/cpp/build-debug/gbenchmark_ep-prefix/src/gbenchmark_ep-stamp/extract-gbenchmark_ep.cmake
+source_dir=/Users/bytedance/cpp/arrow/cpp/build-debug/gbenchmark_ep-prefix/src/gbenchmark_ep
+work_dir=/Users/bytedance/cpp/arrow/cpp/build-debug/gbenchmark_ep-prefix/src
+url(s)=https://github.com/google/benchmark/archive/v1.6.0.tar.gz;https://apache.jfrog.io/artifactory/arrow/thirdparty/7.0.0/gbenchmark-v1.6.0.tar.gz
+hash=SHA256=1f71c72ce08d2c1310011ea6436b31e39ccab8c2db94186d26657d41747c85d6
+no_extract=
+

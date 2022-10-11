@@ -46,10 +46,15 @@
 #ifdef ARROW_WITH_UCX
 #include "arrow/flight/transport/ucx/ucx.h"
 #endif
+#ifdef ARROW_WITH_BRPC
+#include <brpc/channel.h>
+#include <butil/logging.h>
+#include <butil/time.h>
+#endif
 
 DEFINE_bool(cuda, false, "Allocate results in CUDA memory");
-DEFINE_string(transport, "grpc",
-              "The network transport to use. Supported: \"grpc\" (default)"
+DEFINE_string(transport, "brpc",
+              "The network transport to use. Supported: \n\"grpc\" (default) \n\"brpc\" "
 #ifdef ARROW_WITH_UCX
               ", \"ucx\""
 #endif  // ARROW_WITH_UCX
@@ -505,6 +510,18 @@ int main(int argc, char** argv) {
         options.disable_server_verification = true;
       }
     }
+  } else if (FLAGS_transport == "brpc") {
+    //#ifdef ARROW_USE_BRPC
+    FLAGS_server_host = "localhost";
+    std::cout << "Using spawned TCP server" << std::endl;
+    server.reset(
+        new arrow::flight::TestServer("arrow-flight-perf-server", FLAGS_server_port));
+    server->Start(server_args);
+    std::cout << "Server host: " << FLAGS_server_host << std::endl
+              << "Server port: " << FLAGS_server_port << std::endl;
+    ABORT_NOT_OK(arrow::flight::Location::ForGrpcTcp(FLAGS_server_host, FLAGS_server_port)
+                     .Value(&location));
+    //#endif
   } else if (FLAGS_transport == "ucx") {
 #ifdef ARROW_WITH_UCX
     arrow::flight::transport::ucx::InitializeFlightUcx();
@@ -520,6 +537,7 @@ int main(int argc, char** argv) {
     std::cerr << "Not built with transport: " << FLAGS_transport << std::endl;
     return EXIT_FAILURE;
 #endif
+
   } else {
     std::cerr << "Unknown transport: " << FLAGS_transport << std::endl;
     return EXIT_FAILURE;

@@ -45,7 +45,7 @@ if(ARROW_BUILD_INTEGRATION OR ARROW_BUILD_TESTS)
       )
       message(FATAL_ERROR "Must build Arrow statically to link Flight tests statically")
     endif()
-    set(ARROW_FLIGHT_TEST_LINK_LIBS arrow_flight_static arrow_flight_testing_static)
+    set(ARROW_FLIGHT_TEST_LINK_LIBS arrow_flight_static arrow_flight_testing_static brpc)
     list(APPEND ARROW_FLIGHT_TEST_LINK_LIBS ${ARROW_TEST_STATIC_LINK_LIBS})
     if(ARROW_CUDA)
       list(APPEND ARROW_FLIGHT_TEST_INTERFACE_LIBS arrow_cuda_static)
@@ -183,6 +183,25 @@ endif()
 # </KLUDGE> Restore the CXXFLAGS that were modified above
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_BACKUP}")
 
+find_path(BRPC_INCLUDE_PATH NAMES brpc/server.h)
+if(LINK_SO)
+    message("good")
+    find_library(BRPC_LIB NAMES brpc)
+else()
+    message("bad")
+    message(${BRPC_LIB})
+    find_library(BRPC_LIB NAMES libbrpc.a brpc)
+endif()
+#if((NOT BRPC_INCLUDE_PATH) OR (NOT BRPC_LIB))
+#    message(FATAL_ERROR "Fail to find brpc")
+#endif()
+
+#include_directories(${BRPC_INCLUDE_PATH})
+include_directories(${BRPC_HEADER_DIR_})
+include_directories(${BRPC_HEADER_DIR_}/brpc)
+include_directories(${BRPC_SOURCE_DIR_}/butil/third_party)
+link_directories(${BRPC_LIB_DIR_})
+
 # Note, we do not compile the generated gRPC sources directly, instead
 # compiling them via protocol_internal.cc which contains some gRPC template
 # overrides to enable Flight-specific optimizations. See comments in
@@ -206,6 +225,8 @@ set(ARROW_FLIGHT_SRCS
     transport/grpc/serialization_internal.cc
     transport/grpc/protocol_grpc_internal.cc
     transport/grpc/util_internal.cc
+    # Bundle the bRPC impl with libarrow_flight
+    transport/brpc/brpc_server.cc
     types.cc)
 
 if(MSVC)

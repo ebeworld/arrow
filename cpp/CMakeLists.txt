@@ -789,6 +789,9 @@ if(ARROW_WITH_RE2)
   endif()
 endif()
 
+list(APPEND ARROW_SHARED_LINK_LIBS brpc::brpc)
+list(APPEND ARROW_STATIC_LINK_LIBS brpc::brpc)
+
 if(ARROW_WITH_RAPIDJSON)
   list(APPEND ARROW_SHARED_LINK_LIBS rapidjson::rapidjson)
   list(APPEND ARROW_STATIC_LINK_LIBS rapidjson::rapidjson)
@@ -797,6 +800,17 @@ endif()
 if(ARROW_USE_XSIMD)
   list(APPEND ARROW_SHARED_LINK_LIBS xsimd)
   list(APPEND ARROW_STATIC_LINK_LIBS xsimd)
+endif()
+
+if(ARROW_USE_BRPC)
+  set(BRPC_SOURCE_DIR_ ${PROJECT_SOURCE_DIR}/submodules/brpc-rdma/brpc/src)
+  set(BRPC_HEADER_DIR_ ${PROJECT_BINARY_DIR}/submodules/brpc-rdma/output/include)
+  set(BRPC_LIB ${PROJECT_SOURCE_DIR}/submodules/brpc-rdma/output/lib)
+  
+  message(Hello)
+  message(${BRPC_SOURCE_DIR_})
+  add_subdirectory(submodules/brpc-rdma)
+  add_definitions(-DBRPC_RDMA)
 endif()
 
 add_custom_target(arrow_dependencies)

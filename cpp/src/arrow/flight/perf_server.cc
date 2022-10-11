@@ -49,7 +49,7 @@
 #endif
 
 DEFINE_bool(cuda, false, "Allocate results in CUDA memory");
-DEFINE_string(transport, "grpc",
+DEFINE_string(transport, "brpc",
               "The network transport to use. Supported: \"grpc\" (default)"
 #ifdef ARROW_WITH_UCX
               ", \"ucx\""
@@ -282,6 +282,11 @@ int main(int argc, char** argv) {
       ARROW_CHECK_OK(arrow::flight::Location::ForGrpcUnix(FLAGS_server_unix)
                          .Value(&connect_location));
     }
+  } else if (FLAGS_transport == "brpc") {
+    ARROW_CHECK_OK(arrow::flight::Location::ForGrpcTcp("0.0.0.0", FLAGS_port)
+                       .Value(&bind_location));
+    ARROW_CHECK_OK(arrow::flight::Location::ForGrpcTcp(FLAGS_server_host, FLAGS_port)
+                       .Value(&connect_location));
   } else if (FLAGS_transport == "ucx") {
 #ifdef ARROW_WITH_UCX
     arrow::flight::transport::ucx::InitializeFlightUcx();

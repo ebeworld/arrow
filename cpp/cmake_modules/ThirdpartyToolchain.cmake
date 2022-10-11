@@ -147,6 +147,8 @@ foreach(DEPENDENCY ${ARROW_THIRDPARTY_DEPENDENCIES})
 endforeach()
 
 macro(build_dependency DEPENDENCY_NAME)
+   message ("building dependency")
+   message(${DEPENDENCY_NAME})
   if("${DEPENDENCY_NAME}" STREQUAL "absl")
     build_absl()
   elseif("${DEPENDENCY_NAME}" STREQUAL "AWSSDK")
@@ -157,6 +159,8 @@ macro(build_dependency DEPENDENCY_NAME)
     build_boost()
   elseif("${DEPENDENCY_NAME}" STREQUAL "Brotli")
     build_brotli()
+  elseif("${DEPENDENCY_NAME}" STREQUAL "brpc")
+    build_brpc()
   elseif("${DEPENDENCY_NAME}" STREQUAL "BZip2")
     build_bzip2()
   elseif("${DEPENDENCY_NAME}" STREQUAL "c-ares")
@@ -222,6 +226,8 @@ macro(provide_find_module PACKAGE_NAME ARROW_CMAKE_PACKAGE_NAME)
 endmacro()
 
 macro(resolve_dependency DEPENDENCY_NAME)
+  message ("resolving dependency")
+  message (${DEPENDENCY_NAME})
   set(options)
   set(one_value_args
       FORCE_ANY_NEWER_VERSION
@@ -486,6 +492,13 @@ else()
   set_urls(BROTLI_SOURCE_URL
            "https://github.com/google/brotli/archive/${ARROW_BROTLI_BUILD_VERSION}.tar.gz"
            "${THIRDPARTY_MIRROR_URL}/brotli-${ARROW_BROTLI_BUILD_VERSION}.tar.gz")
+endif()
+
+if(DEFINED ENV{ARROW_BRPC_URL})
+  set(BRPC_SOURCE_URL "$ENV{ARROW_BRPC_URL}")
+else()
+  set_urls(BRPC_SOURCE_URL
+           "https://github.com/apache/incubator-brpc/archive/refs/tags/${ARROW_BRPC_BUILD_VERSION}.tar.gz")
 endif()
 
 if(DEFINED ENV{ARROW_BZIP2_URL})
@@ -3614,6 +3627,42 @@ macro(build_absl)
   file(MAKE_DIRECTORY ${ABSL_INCLUDE_DIR})
 
   set(ABSL_VENDORED TRUE)
+endmacro()
+
+
+resolve_dependency(brpc)
+macro(build_brpc)
+ set(ARROW_USE_BRPC TRUE)
+   message(STATUS "Building brpc from source")
+  set(BRPC_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/re2_ep-install")
+  set(BRPC_STATIC_LIB
+      "${BRPC_PREFIX}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}brpc${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+  set(BRPC_CMAKE_ARGS ${EP_COMMON_CMAKE_ARGS} "-DCMAKE_INSTALL_PREFIX=${BRPC_PREFIX}"
+                     -DCMAKE_INSTALL_LIBDIR=lib)
+
+  externalproject_add(brpc_ep
+                      ${EP_LOG_OPTIONS}
+                      INSTALL_DIR ${BRPC_PREFIX}
+                      URL ${BRPC_SOURCE_URL}
+                      URL_HASH "SHA256=${ARROW_BRPC_BUILD_SHA256_CHECKSUM}"
+                      CMAKE_ARGS ${BRPC_CMAKE_ARGS}
+                      BUILD_BYPRODUCTS "${BRPC_STATIC_LIB}")
+
+  file(MAKE_DIRECTORY "${BRPC_PREFIX}/include")
+  add_library(brpc::brpc STATIC IMPORTED)
+  set_target_properties(brpc::brpc
+                        PROPERTIES IMPORTED_LOCATION "${BRPC_STATIC_LIB}"
+                                   INTERFACE_INCLUDE_DIRECTORIES "${BRPC_PREFIX}/include")
+
+  add_dependencies(toolchain brpc_ep)
+  add_dependencies(brpc::brpc brpc_ep)
+  set(BRPC_VENDORED TRUE)
+  # Set values so that FindRE2 finds this too
+  set(BRPC_LIB ${RE2_STATIC_LIB})
+  set(BRPC_INCLUDE_DIR "${BRPC_PREFIX}/include")
+
+  list(APPEND ARROW_BUNDLED_STATIC_LIBS brpc::brpc)
 endmacro()
 
 macro(build_grpc)

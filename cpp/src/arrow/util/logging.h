@@ -17,6 +17,15 @@
 
 #pragma once
 
+#undef DCHECK
+#undef DCHECK_OK
+#undef DCHECK_EQ
+#undef DCHECK_NE
+#undef DCHECK_LE
+#undef DCHECK_LT
+#undef DCHECK_GE
+#undef DCHECK_GT
+
 #ifdef GANDIVA_IR
 
 // The LLVM IR code doesn't have an NDEBUG mode. And, it shouldn't include references to
